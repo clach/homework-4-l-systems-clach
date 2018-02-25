@@ -5,19 +5,18 @@ import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import Cube from './geometry/Cube';
 import Cactus from './geometry/Cactus';
-import LSystem from './geometry/LSystem';
+import LSystemMesh from './geometry/LSystemMesh';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
 import { setGL } from './globals';
 import ShaderProgram, { Shader } from './rendering/gl/ShaderProgram';
 import OBJLoader from './OBJLoader';
+import LSystem from './LSystem';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
-  'Color': [107, 142, 35]
 };
 
 let icosphere: Icosphere;
@@ -26,8 +25,8 @@ let cube: Cube;
 let cactus: Cactus = new Cactus();
 
 function loadScene() {
-  icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
-  icosphere.create();
+  //icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
+  //icosphere.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   cube = new Cube();
@@ -45,13 +44,7 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
-  var colorPicker = gui.addColor(controls, 'Color'); // color picker for gui
-
-  colorPicker.onChange(function (value: Float32Array) {
-    renderer.setGeometryColor(value);
-  });
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');
@@ -108,6 +101,18 @@ function main() {
 
   let cactusFilename: string = "./cactusPaddleTriangles.obj";
   readTextFile(cactusFilename, callback);
+
+  var numIterations: number = 3;
+  var startChar: string = '0';
+  let cactusLSystem: LSystem = new LSystem(startChar);
+  // expand starting character
+  for (var i = 0; i < numIterations; i++) {
+    cactusLSystem.expandString();
+    console.log("iteration " + i + " = " + cactusLSystem.getString());
+  }
+  //console.log(cactusGrammar.getString());
+  // determine what functions 
+  //cactusGrammar.drawString();
 
 
   // This function will be called every frame
