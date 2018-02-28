@@ -1,4 +1,4 @@
-import { vec3 } from 'gl-matrix';
+import { vec3, quat } from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
 import Icosphere from './geometry/Icosphere';
@@ -12,6 +12,7 @@ import { setGL } from './globals';
 import ShaderProgram, { Shader } from './rendering/gl/ShaderProgram';
 import OBJLoader from './OBJLoader';
 import LSystem from './LSystem';
+import Turtle from './Turtle';
 
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
@@ -22,15 +23,18 @@ const controls = {
 let icosphere: Icosphere;
 let square: Square;
 let cube: Cube;
-let cactus: Cactus = new Cactus();
+let cactusPaddle: Cactus; 
+let cactusMesh: LSystemMesh;
 
 function loadScene() {
-  //icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
-  //icosphere.create();
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   cube = new Cube();
   cube.create();
+
+  cactusPaddle = new Cactus();
+  cactusMesh = new LSystemMesh();
+
 }
 
 function main() {
@@ -72,10 +76,10 @@ function main() {
 
 
   function callback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
-    cactus.indices = Uint32Array.from(indices);
-    cactus.positions = Float32Array.from(positions);
-    cactus.normals = Float32Array.from(normals);
-    cactus.create();
+    cactusPaddle.indices = Uint32Array.from(indices);
+    cactusPaddle.positions = Float32Array.from(positions);
+    cactusPaddle.normals = Float32Array.from(normals);
+    cactusPaddle.create();
   }
 
   // referenced from https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
@@ -91,7 +95,7 @@ function main() {
         if (rawFile.status === 200 || rawFile.status == 0) {
           var allText = rawFile.responseText;
           //console.log(allText);
-          OBJLoader(allText, callback, cactus);
+          OBJLoader(allText, callback, cactusPaddle);
 
         }
       }
@@ -99,20 +103,28 @@ function main() {
     rawFile.send(null);
   }
 
-  let cactusFilename: string = "./cactusPaddleTriangles.obj";
+  let cactusFilename: string = "./cactusPaddle2.obj";
   readTextFile(cactusFilename, callback);
 
-  var numIterations: number = 3;
+  var numIterations: number = 1;
   var startChar: string = '0';
-  let cactusLSystem: LSystem = new LSystem(startChar);
+  let cactusLSystem: LSystem = new LSystem(startChar, cactusMesh);
   // expand starting character
   for (var i = 0; i < numIterations; i++) {
     cactusLSystem.expandString();
     console.log("iteration " + i + " = " + cactusLSystem.getString());
   }
   //console.log(cactusGrammar.getString());
-  // determine what functions 
-  //cactusGrammar.drawString();
+
+  let turtle: Turtle = new Turtle(cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
+  
+  // add rules for what draw functions to call
+  cactusLSystem.addRules(cactusPaddle, cactusMesh, turtle);
+
+  // determines what draw functions to call, fills VBOS of cactusMesh
+  cactusLSystem.drawLSystem();
+
+  cactusMesh.create();
 
 
   // This function will be called every frame
@@ -125,7 +137,8 @@ function main() {
     renderer.render(camera, lambert, [
       // icosphere,
       // square,
-      cactus, 
+      //cactusPaddle,
+      cactusMesh
     ]);
     stats.end();
 

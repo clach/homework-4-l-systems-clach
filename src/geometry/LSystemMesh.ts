@@ -9,9 +9,13 @@ class LSystem extends Drawable {
 
   constructor() {
     super(); // Call the constructor of the super class. This is required.
+    this.indices = new Uint32Array(0);
+    this.positions = new Float32Array(0);
+    this.normals = new Float32Array(0);
+
   }
 
-  addIndices(newIndices: Uint32Array) {
+  addIndices(newIndices: Uint32Array) : void {
     var newIndicesArray = new Uint32Array(this.indices.length + newIndices.length);
     newIndicesArray.set(this.indices);
     newIndicesArray.set(newIndices, this.indices.length);
@@ -19,7 +23,7 @@ class LSystem extends Drawable {
     this.indices = newIndicesArray;
   }
 
-  addPositions(newPositions: Float32Array) {
+  addPositions(newPositions: Float32Array) : void {
     var newPositionsArray = new Float32Array(this.positions.length + newPositions.length);
     newPositionsArray.set(this.positions);
     newPositionsArray.set(newPositions, this.positions.length);
@@ -27,12 +31,23 @@ class LSystem extends Drawable {
     this.positions = newPositionsArray;
   }
 
-  addNormals(newNormals: Float32Array) {
+  addNormals(newNormals: Float32Array) : void {
     var newNormalsArray = new Float32Array(this.normals.length + newNormals.length);
     newNormalsArray.set(this.normals);
     newNormalsArray.set(newNormals, this.normals.length);
 
     this.normals = newNormalsArray;
+  }
+
+  getMaxIndex() : number {
+    if (this.indices.length == 0) {
+      return -1;
+    } else {
+      var max = this.indices.reduce(function(a, b) {
+        return Math.max(a, b);
+      });
+      return max;
+    }
   }
 
   // only call once all geometry has been added to cactus (l-system has been fully expanded and such)
