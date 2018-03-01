@@ -1,11 +1,13 @@
 import { vec3, quat } from 'gl-matrix';
 import * as Stats from 'stats-js';
 import * as DAT from 'dat-gui';
+import Drawable from './rendering/gl/Drawable';
 import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import Cube from './geometry/Cube';
-import Cactus from './geometry/Cactus';
+import CactusPaddle from './geometry/CactusPaddle';
 import Flower from './geometry/Flower';
+import Cylinder from './geometry/Cylinder';
 import LSystemMesh from './geometry/LSystemMesh';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
@@ -18,21 +20,45 @@ import Turtle from './Turtle';
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
-  'Load Scene': loadScene, // A function pointer, essentially
-  'Iterations': 1
+  'Update': update, // A function pointer, essentially
+  'Iterations': 1,
+  'Rotation': 1
 };
 
-let icosphere: Icosphere;
-let square: Square;
-let cube: Cube;
-let cactusPaddle: Cactus; 
+let cactusPaddle: CactusPaddle; 
 let flower: Flower;
+let base: Cylinder;
 let cactusMesh: LSystemMesh;
 
 function loadScene() {
-  cactusPaddle = new Cactus();
+  cactusPaddle = new CactusPaddle();
   flower = new Flower();
+  base = new Cylinder();
   cactusMesh = new LSystemMesh();
+}
+
+function update() {
+  cactusMesh.destroy();
+  cactusMesh.clear();
+
+  let startChar: string = '0';
+  let cactusLSystem: LSystem = new LSystem(startChar, cactusMesh);
+
+  // expand starting character
+  for (var i = 0; i < controls.Iterations; i++) {
+    cactusLSystem.expandString();
+    console.log("iteration " + i + " = " + cactusLSystem.getString());
+  }
+
+  let turtle: Turtle = new Turtle(controls.Rotation, cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
+  
+  // add rules for what draw functions to call
+  cactusLSystem.addRules(cactusPaddle, flower, cactusMesh, turtle);
+
+  // determines what draw functions to call, fills VBOS of cactusMesh
+  cactusLSystem.drawLSystem();
+
+  cactusMesh.create();
 }
 
 function main() {
@@ -46,12 +72,9 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'Load Scene');
-  var numIterations = gui.add(controls, 'Iterations', 0, 5);
-
-  numIterations.onChange(function(value : number) {
-    // reload scene!
-  });
+  gui.add(controls, 'Update');
+  gui.add(controls, 'Iterations', 0, 5);
+  gui.add(controls, 'Rotation', 0, 1);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');
@@ -69,7 +92,7 @@ function main() {
   const camera = new Camera(vec3.fromValues(0, 0, 5), vec3.fromValues(0, 0, 0));
 
   const renderer = new OpenGLRenderer(canvas);
-  renderer.setClearColor(0.68, 0.85, 0.9, 1);
+  renderer.setClearColor(0.53, 0.81, 0.92, 1);
   gl.enable(gl.DEPTH_TEST);
 
   const lambert = new ShaderProgram([
@@ -91,6 +114,15 @@ function main() {
     flower.normals = Float32Array.from(normals);
     flower.create();
   }
+
+  function baseCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    base.indices = Uint32Array.from(indices);
+    base.positions = Float32Array.from(positions);
+    base.normals = Float32Array.from(normals);
+    base.create();
+  }
+
+
 
   // referenced from https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
   function readTextFile(file: string, callback: any): void {
@@ -117,25 +149,10 @@ function main() {
   let flowerFilename: string = "./flower.obj";
   readTextFile(flowerFilename, flowerCallback);
 
-  let startChar: string = '0';
-  let cactusLSystem: LSystem = new LSystem(startChar, cactusMesh);
+  let baseFilename: string = "./cylinder.obj";
+  readTextFile(baseFilename, baseCallback);
 
-  // expand starting character
-  for (var i = 0; i < controls.Iterations; i++) {
-    cactusLSystem.expandString();
-    console.log("iteration " + i + " = " + cactusLSystem.getString());
-  }
-
-  let turtle: Turtle = new Turtle(cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
-  
-  // add rules for what draw functions to call
-  cactusLSystem.addRules(cactusPaddle, flower, cactusMesh, turtle);
-
-  // determines what draw functions to call, fills VBOS of cactusMesh
-  cactusLSystem.drawLSystem();
-
-  cactusMesh.create();
-
+  update();
 
   // This function will be called every frame
   function tick() {
@@ -145,7 +162,8 @@ function main() {
     renderer.clear();
 
     renderer.render(camera, lambert, [
-      cactusMesh
+      cactusMesh,
+      base
     ]);
     stats.end();
 

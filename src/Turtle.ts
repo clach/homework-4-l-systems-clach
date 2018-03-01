@@ -1,8 +1,7 @@
 import { vec4, vec3, mat3, mat4, glMatrix, quat } from 'gl-matrix';
-import CactusPaddle from './geometry/Cactus'
+import CactusPaddle from './geometry/CactusPaddle'
 import Drawable from './rendering/gl/Drawable'
 import LSystemMesh from './geometry/LSystemMesh'
-import Cactus from './geometry/Cactus'
 import Flower from './geometry/Flower'
 
 class TurtleState {
@@ -34,6 +33,10 @@ class TurtleState {
         this.position = vec3.add(this.position, this.position, translate);
     }
 
+    scaleTurtle(scale: number) : void {
+        this.scale *= scale;
+    }
+
     getTurtleTransMat() : mat4 {
         var translateMat: mat4 = mat4.fromRotationTranslationScale(mat4.create(), 
             this.orientation, this.position, vec3.fromValues(this.scale, this.scale, this.scale));
@@ -50,19 +53,38 @@ class TurtleState {
 }
 
 class Turtle {
+    rotation: number;
+
     cactusMesh: LSystemMesh;
 
     turtleStates: TurtleState[] = [];
 
     currentTurtle: TurtleState;
 
-    constructor(startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
+    constructor(rotation: number, startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
+        this.rotation = rotation;
         this.cactusMesh = startMesh;
         this.currentTurtle = new TurtleState(startPos, startOrientation, startDepth, startScale);
     }
 
-    drawCactusPaddle(cactusPaddleMesh: Cactus, cactusMesh: LSystemMesh) : void {
+    drawCactusPaddle(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
         console.log("draw cactus paddle");
+
+        if (this.currentTurtle.depth > 0) {
+            // rotate cactus by some random amount (0-45 degrees)
+            let randX = Math.random() - 0.5;
+            let randY = Math.random() - 0.5;
+            let randZ = Math.random() - 0.5;
+            this.currentTurtle.rotateTurtleX(this.rotation * randX * 45);
+            this.currentTurtle.rotateTurtleY(this.rotation * randY * 45);
+            this.currentTurtle.rotateTurtleZ(this.rotation * randZ * 45);
+        }
+
+        if (this.currentTurtle.depth > 0) {
+            // scale cactus by some random amount
+            let scaleRand = (Math.random() + 1) / 2.0;
+            this.currentTurtle.scaleTurtle(scaleRand * 0.9);
+        }
 
         let transformMat: mat4 = this.currentTurtle.getTurtleTransMat();
         let invTransMat: mat4 = this.currentTurtle.getTurtleInvTransTransMat();
@@ -91,6 +113,9 @@ class Turtle {
 
         }
 
+        // pass cactus colors
+        cactusMesh.addColors(cactusPaddleMesh.colors);
+
         let offset: number = cactusMesh.getMaxIndex() + 1;
 
         let cactusPaddleIndices: Uint32Array = cactusPaddleMesh.indices;
@@ -101,19 +126,26 @@ class Turtle {
         let indicesArray: Uint32Array = new Uint32Array(cactusIndices);
         cactusMesh.addIndices(indicesArray);
 
-        //this.currentTurtle.translateTurtle(vec3.fromValues(0, 1, 0));
-        //this.currentTurtle.rotateTurtleZ(this.currentTurtle.orientation);
         var toTranslateBy: vec4 = vec4.fromValues(0, 1, 0, 1);
+        toTranslateBy = vec4.scale(toTranslateBy, toTranslateBy, this.currentTurtle.scale);
         toTranslateBy = vec4.transformQuat(toTranslateBy, toTranslateBy, this.currentTurtle.orientation);
         let toTranslateByVec3: vec3 = vec3.fromValues(toTranslateBy[0], toTranslateBy[1], toTranslateBy[2]);
         
         this.currentTurtle.translateTurtle(toTranslateByVec3);
+
+        this.currentTurtle.depth++;
     }
 
-    drawCactusPaddleFlower(cactusPaddleMesh: Cactus, flowerMesh: Flower, cactusMesh: LSystemMesh) : void  {
-        console.log("draw cactus paddleLEAF");
+    drawCactusPaddleFlower(cactusPaddleMesh: CactusPaddle, flowerMesh: Flower, cactusMesh: LSystemMesh) : void  {
 
         this.drawCactusPaddle(cactusPaddleMesh, cactusMesh);
+
+        var toTranslateBy: vec4 = vec4.fromValues(0, 0.05, 0, 1);
+        toTranslateBy = vec4.scale(toTranslateBy, toTranslateBy, this.currentTurtle.scale);
+        toTranslateBy = vec4.transformQuat(toTranslateBy, toTranslateBy, this.currentTurtle.orientation);
+        let toTranslateByVec3: vec3 = vec3.fromValues(toTranslateBy[0], toTranslateBy[1], toTranslateBy[2]);
+        
+        this.currentTurtle.translateTurtle(toTranslateByVec3);
 
         let transformMat: mat4 = this.currentTurtle.getTurtleTransMat();
         let invTransMat: mat4 = this.currentTurtle.getTurtleInvTransTransMat();
@@ -151,9 +183,16 @@ class Turtle {
         let indicesArray: Uint32Array = new Uint32Array(cactusIndices);
         cactusMesh.addIndices(indicesArray);
 
+        // pass flower colors
+        cactusMesh.addColors(flowerMesh.colors);
+
+        this.currentTurtle.depth++;
+
+        console.log("draw flower");
+
     }
 
-    rotateLeft(cactusPaddleMesh: Cactus, cactusMesh: LSystemMesh) : void  {
+    rotateLeft(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void  {
         console.log("rotateLeft");
         this.turtleStates.push(this.currentTurtle);
 
@@ -162,7 +201,7 @@ class Turtle {
         let orientation: quat = quat.fromValues(this.currentTurtle.orientation[0], 
             this.currentTurtle.orientation[1], this.currentTurtle.orientation[2], 
             this.currentTurtle.orientation[3]);
-        let depth = this.currentTurtle.depth;
+        let depth = this.currentTurtle.depth + 1;
         let scale = this.currentTurtle.scale;
 
         var newTurtle: TurtleState = new TurtleState(pos, orientation, depth, scale);
@@ -171,7 +210,7 @@ class Turtle {
         this.currentTurtle = newTurtle;
     }
 
-    rotateRight(cactusPaddleMesh: Cactus, cactusMesh: LSystemMesh) : void {
+    rotateRight(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
         console.log("rotateRight");
 
         this.currentTurtle = this.turtleStates.pop();

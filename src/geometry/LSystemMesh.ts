@@ -6,13 +6,22 @@ class LSystem extends Drawable {
   indices: Uint32Array;
   positions: Float32Array;
   normals: Float32Array;
+  colors: Float32Array;
+
+  indicesTemp: number[];
+  positionsTemp: number[];
+  normalsTemp: number[];
 
   constructor() {
     super(); // Call the constructor of the super class. This is required.
     this.indices = new Uint32Array(0);
     this.positions = new Float32Array(0);
     this.normals = new Float32Array(0);
+    this.colors = new Float32Array(0);
 
+    //this.indicesTemp = [];
+    //this.positionsTemp = [];
+    //this.normalsTemp = [];
   }
 
   addIndices(newIndices: Uint32Array) : void {
@@ -39,6 +48,21 @@ class LSystem extends Drawable {
     this.normals = newNormalsArray;
   }
 
+  addColors(newColors: Float32Array) : void {
+    var newColorsArray = new Float32Array(this.colors.length + newColors.length);
+    newColorsArray.set(this.colors);
+    newColorsArray.set(newColors, this.colors.length);
+
+    this.colors = newColorsArray;
+  }
+
+  clear() {
+    this.indices = new Uint32Array(0);
+    this.positions = new Float32Array(0);
+    this.normals = new Float32Array(0);
+    this.colors = new Float32Array(0);
+  }
+
   getMaxIndex() : number {
     if (this.indices.length == 0) {
       return -1;
@@ -52,9 +76,12 @@ class LSystem extends Drawable {
 
   // only call once all geometry has been added to cactus (l-system has been fully expanded and such)
   create() {
+    
+
     this.generateIdx();
     this.generatePos();
     this.generateNor();
+    this.generateCol();
 
     this.count = this.indices.length;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
@@ -66,7 +93,9 @@ class LSystem extends Drawable {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
 
-    console.log(`Created cactus`);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufCol);
+    gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
   }
 };
 

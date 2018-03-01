@@ -2,7 +2,7 @@ import {vec3, vec4} from 'gl-matrix';
 import Drawable from '../rendering/gl/Drawable';
 import {gl} from '../globals';
 
-class Flower extends Drawable {
+class CactusPaddle extends Drawable {
   indices: Uint32Array;
   positions: Float32Array;
   normals: Float32Array;
@@ -16,9 +16,9 @@ class Flower extends Drawable {
 
     var colorsArr: number[] = [];
     for (var i = 0; i < this.positions.length; i +=4) {
-      colorsArr.push(0.7);
-      colorsArr.push(0.5);
-      colorsArr.push(0.74);
+      colorsArr.push(0.30);
+      colorsArr.push(0.6);
+      colorsArr.push(0.26);
       colorsArr.push(1);
     }
     this.colors = new Float32Array(colorsArr);
@@ -40,7 +40,8 @@ class Flower extends Drawable {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufCol);
     gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
+
   }
 };
 
-export default Flower;
+export default CactusPaddle;
