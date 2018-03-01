@@ -3,6 +3,7 @@ import DrawRules from './DrawRules';
 import Turtle from './Turtle'
 import LSystemMesh from './geometry/LSystemMesh'
 import Cactus from './geometry/Cactus'
+import Flower from './geometry/Flower'
 import { vec3, mat4 } from 'gl-matrix';
 
 class LSystem {
@@ -25,10 +26,10 @@ class LSystem {
 
     // add drawing rules
     // made into separate function because it requires knowing meshes and Turtle
-    addRules(cactusPaddleMesh: Cactus, cactusMesh: LSystemMesh, turtle: Turtle) : void {
+    addRules(cactusPaddleMesh: Cactus, flowerMesh: Flower, cactusMesh: LSystemMesh, turtle: Turtle) : void {
         this.drawRules.addDrawRule('[', 1, function(){ turtle.rotateLeft(cactusPaddleMesh, cactusMesh) });
         this.drawRules.addDrawRule(']', 1, function(){ turtle.rotateRight(cactusPaddleMesh, cactusMesh) });
-        this.drawRules.addDrawRule('0', 1, function(){ turtle.drawCactusPaddle(cactusPaddleMesh, cactusMesh) });
+        this.drawRules.addDrawRule('0', 1, function(){ turtle.drawCactusPaddleFlower(cactusPaddleMesh, flowerMesh, cactusMesh) });
         this.drawRules.addDrawRule('1', 1, function(){ turtle.drawCactusPaddle(cactusPaddleMesh, cactusMesh) });
     }
 

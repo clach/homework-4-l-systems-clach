@@ -5,6 +5,7 @@ import Icosphere from './geometry/Icosphere';
 import Square from './geometry/Square';
 import Cube from './geometry/Cube';
 import Cactus from './geometry/Cactus';
+import Flower from './geometry/Flower';
 import LSystemMesh from './geometry/LSystemMesh';
 import OpenGLRenderer from './rendering/gl/OpenGLRenderer';
 import Camera from './Camera';
@@ -18,23 +19,20 @@ import Turtle from './Turtle';
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
   'Load Scene': loadScene, // A function pointer, essentially
+  'Iterations': 1
 };
 
 let icosphere: Icosphere;
 let square: Square;
 let cube: Cube;
 let cactusPaddle: Cactus; 
+let flower: Flower;
 let cactusMesh: LSystemMesh;
 
 function loadScene() {
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
-  cube = new Cube();
-  cube.create();
-
   cactusPaddle = new Cactus();
+  flower = new Flower();
   cactusMesh = new LSystemMesh();
-
 }
 
 function main() {
@@ -49,6 +47,11 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
   gui.add(controls, 'Load Scene');
+  var numIterations = gui.add(controls, 'Iterations', 0, 5);
+
+  numIterations.onChange(function(value : number) {
+    // reload scene!
+  });
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');
@@ -75,11 +78,18 @@ function main() {
   ]);
 
 
-  function callback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+  function cactusPaddleCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
     cactusPaddle.indices = Uint32Array.from(indices);
     cactusPaddle.positions = Float32Array.from(positions);
     cactusPaddle.normals = Float32Array.from(normals);
     cactusPaddle.create();
+  }
+
+  function flowerCallback(indices: Array<number>, positions: Array<number>, normals: Array<number>): void {
+    flower.indices = Uint32Array.from(indices);
+    flower.positions = Float32Array.from(positions);
+    flower.normals = Float32Array.from(normals);
+    flower.create();
   }
 
   // referenced from https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
@@ -94,9 +104,7 @@ function main() {
       if (rawFile.readyState === 4) {
         if (rawFile.status === 200 || rawFile.status == 0) {
           var allText = rawFile.responseText;
-          //console.log(allText);
           OBJLoader(allText, callback, cactusPaddle);
-
         }
       }
     }
@@ -104,22 +112,24 @@ function main() {
   }
 
   let cactusFilename: string = "./cactusPaddle2.obj";
-  readTextFile(cactusFilename, callback);
+  readTextFile(cactusFilename, cactusPaddleCallback);
 
-  var numIterations: number = 1;
-  var startChar: string = '0';
+  let flowerFilename: string = "./flower.obj";
+  readTextFile(flowerFilename, flowerCallback);
+
+  let startChar: string = '0';
   let cactusLSystem: LSystem = new LSystem(startChar, cactusMesh);
+
   // expand starting character
-  for (var i = 0; i < numIterations; i++) {
+  for (var i = 0; i < controls.Iterations; i++) {
     cactusLSystem.expandString();
     console.log("iteration " + i + " = " + cactusLSystem.getString());
   }
-  //console.log(cactusGrammar.getString());
 
   let turtle: Turtle = new Turtle(cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
   
   // add rules for what draw functions to call
-  cactusLSystem.addRules(cactusPaddle, cactusMesh, turtle);
+  cactusLSystem.addRules(cactusPaddle, flower, cactusMesh, turtle);
 
   // determines what draw functions to call, fills VBOS of cactusMesh
   cactusLSystem.drawLSystem();
@@ -135,9 +145,6 @@ function main() {
     renderer.clear();
 
     renderer.render(camera, lambert, [
-      // icosphere,
-      // square,
-      //cactusPaddle,
       cactusMesh
     ]);
     stats.end();
