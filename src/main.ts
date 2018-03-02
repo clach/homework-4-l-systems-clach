@@ -22,7 +22,9 @@ import Turtle from './Turtle';
 const controls = {
   'Update': update, // A function pointer, essentially
   'Iterations': 1,
-  'Rotation': 1
+  'Rotation': 1,
+  'Scale': 1,
+  'Flower Color': [0.75 * 255, 0.5 * 255, 0.74 * 255]
 };
 
 let cactusPaddle: CactusPaddle; 
@@ -47,10 +49,10 @@ function update() {
   // expand starting character
   for (var i = 0; i < controls.Iterations; i++) {
     cactusLSystem.expandString();
-    console.log("iteration " + i + " = " + cactusLSystem.getString());
+    //console.log("iteration " + i + " = " + cactusLSystem.getString());
   }
 
-  let turtle: Turtle = new Turtle(controls.Rotation, cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
+  let turtle: Turtle = new Turtle(controls.Scale, controls.Rotation, cactusMesh, vec3.fromValues(0, 0, 0), quat.create(), 0, 1);
   
   // add rules for what draw functions to call
   cactusLSystem.addRules(cactusPaddle, flower, cactusMesh, turtle);
@@ -73,8 +75,15 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
   gui.add(controls, 'Update');
-  gui.add(controls, 'Iterations', 0, 5);
+  gui.add(controls, 'Iterations', 0, 5).step(1);
   gui.add(controls, 'Rotation', 0, 3);
+  gui.add(controls, 'Scale', 0, 2);
+  var colorPicker = gui.addColor(controls, 'Flower Color');
+
+  colorPicker.onChange(function(value : Float32Array) {
+    flower.setColor(vec3.fromValues(value[0] / 255.0, value[1] / 255.0, value[2] / 255.0));
+    flower.resetColors();
+  });
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');

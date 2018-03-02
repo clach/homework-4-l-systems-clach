@@ -20,19 +20,21 @@ class LSystem {
         // add string expansion rules
         this.expansionRules.addExpansionRule('[', 1, '[');
         this.expansionRules.addExpansionRule(']', 1, ']');
-        this.expansionRules.addExpansionRule('1', 0.3, '11');
-        this.expansionRules.addExpansionRule('1', 0.5, '1[0]0');
-        this.expansionRules.addExpansionRule('1', 0.2, '1');
+        this.expansionRules.addExpansionRule('1', 0.15, '11');
+        this.expansionRules.addExpansionRule('1', 0.6, '1[0]1');
+        this.expansionRules.addExpansionRule('1', 0.25, '1');
         this.expansionRules.addExpansionRule('0', 0.5, '1[0]0');
-        this.expansionRules.addExpansionRule('0', 0.2, '10');
-        this.expansionRules.addExpansionRule('0', 0.3, '1[0][0]0');
+        this.expansionRules.addExpansionRule('0', 0.1, '10');
+        this.expansionRules.addExpansionRule('0', 0.4, '1[0][0]0');
     }
 
     // add drawing rules
     // made into separate function because it requires knowing meshes and Turtle
     addRules(cactusPaddleMesh: CactusPaddle, flowerMesh: Flower, cactusMesh: LSystemMesh, turtle: Turtle) : void {
-        this.drawRules.addDrawRule('[', 1, function(){ turtle.rotateLeft(cactusPaddleMesh, cactusMesh) });
-        this.drawRules.addDrawRule(']', 1, function(){ turtle.rotateRight(cactusPaddleMesh, cactusMesh) });
+        this.drawRules.addDrawRule('[', 0.6, function(){ turtle.rotateLeftZ(cactusPaddleMesh, cactusMesh) });
+        this.drawRules.addDrawRule(']', 0.6, function(){ turtle.rotateRightZ(cactusPaddleMesh, cactusMesh) });
+        this.drawRules.addDrawRule('[', 0.4, function(){ turtle.rotateLeftXYZ(cactusPaddleMesh, cactusMesh) });
+        this.drawRules.addDrawRule(']', 0.4, function(){ turtle.rotateRightXYZ(cactusPaddleMesh, cactusMesh) });
         this.drawRules.addDrawRule('0', 1, function(){ turtle.drawCactusPaddleFlower(cactusPaddleMesh, flowerMesh, cactusMesh) });
         this.drawRules.addDrawRule('1', 1, function(){ turtle.drawCactusPaddle(cactusPaddleMesh, cactusMesh) });
     }
@@ -45,11 +47,9 @@ class LSystem {
     // determines what successor string each character maps to 
     // returns string made of successor strings
     expandString() : void {
-        console.log("about to expand " + this.currStringArr.join(''));
         var newStringArr: string[] = [];
         for (var i = 0; i < this.currStringArr.length; i++) {
             var stringToExpand = this.currStringArr[i];
-            console.log("stringToExpand: " + stringToExpand);
             for (var j = 0; j < stringToExpand.length; j++) {
                 var char = stringToExpand.charAt(j);
 
@@ -59,7 +59,6 @@ class LSystem {
             }
         }
 
-        console.log("expanded to " + newStringArr.join(""));
         this.currStringArr = newStringArr;
     }
 

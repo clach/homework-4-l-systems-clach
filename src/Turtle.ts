@@ -54,6 +54,7 @@ class TurtleState {
 
 class Turtle {
     rotation: number;
+    scale: number;
 
     cactusMesh: LSystemMesh;
 
@@ -61,7 +62,8 @@ class Turtle {
 
     currentTurtle: TurtleState;
 
-    constructor(rotation: number, startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
+    constructor(scale: number, rotation: number, startMesh: LSystemMesh, startPos: vec3, startOrientation: quat, startDepth: number, startScale: number) {
+        this.scale = scale;
         this.rotation = rotation;
         this.cactusMesh = startMesh;
         this.currentTurtle = new TurtleState(startPos, startOrientation, startDepth, startScale);
@@ -83,11 +85,11 @@ class Turtle {
             this.currentTurtle.rotateTurtleY(this.rotation * randY * 60);
         }
 
-        //if (this.currentTurtle.depth > 0) {
-            // scale cactus by some random amount
-            let scaleRand = (Math.random() + 1) / 2.0;
-            this.currentTurtle.scaleTurtle(scaleRand * 0.9);
-        //}
+        // scale cactus by some random amount
+        let scaleRand = (Math.random() * 0.25) + 0.75;
+        if (this.currentTurtle.scale >= 0.2) {
+            this.currentTurtle.scaleTurtle(this.scale * scaleRand * 0.9);
+        } 
 
         let transformMat: mat4 = this.currentTurtle.getTurtleTransMat();
         let invTransMat: mat4 = this.currentTurtle.getTurtleInvTransTransMat();
@@ -211,8 +213,7 @@ class Turtle {
 
     }
 
-    rotateLeft(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void  {
-        //console.log("rotateLeft");
+    rotateLeftZ(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void  {
         this.turtleStates.push(this.currentTurtle);
 
         let pos: vec3 = vec3.fromValues(this.currentTurtle.position[0], this.currentTurtle.position[1],
@@ -229,11 +230,36 @@ class Turtle {
         this.currentTurtle = newTurtle;
     }
 
-    rotateRight(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
-        //console.log("rotateRight");
-
+    rotateRightZ(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
         this.currentTurtle = this.turtleStates.pop();
         this.currentTurtle.rotateTurtleZ(-45);
+    }
+
+    rotateLeftXYZ(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void  {
+        this.turtleStates.push(this.currentTurtle);
+
+        let pos: vec3 = vec3.fromValues(this.currentTurtle.position[0], this.currentTurtle.position[1],
+            this.currentTurtle.position[2]);
+        let orientation: quat = quat.fromValues(this.currentTurtle.orientation[0], 
+            this.currentTurtle.orientation[1], this.currentTurtle.orientation[2], 
+            this.currentTurtle.orientation[3]);
+        let depth = this.currentTurtle.depth + 1;
+        let scale = this.currentTurtle.scale;
+
+        var newTurtle: TurtleState = new TurtleState(pos, orientation, depth, scale);
+        newTurtle.rotateTurtleZ(-25);
+        newTurtle.rotateTurtleY(-10);
+        newTurtle.rotateTurtleX(-10);
+
+        this.currentTurtle = newTurtle;
+    }
+
+    rotateRightXYZ(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
+        this.currentTurtle = this.turtleStates.pop();
+        this.currentTurtle.rotateTurtleZ(25);
+        this.currentTurtle.rotateTurtleY(10);
+        this.currentTurtle.rotateTurtleX(10);
+
     }
 
 
