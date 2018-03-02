@@ -68,63 +68,73 @@ class Turtle {
     }
 
     drawCactusPaddle(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
-        console.log("draw cactus paddle");
+        //console.log("draw cactus paddle");
 
         if (this.currentTurtle.depth > 0) {
             // rotate cactus by some random amount (0-45 degrees)
             let randX = Math.random() - 0.5;
             let randY = Math.random() - 0.5;
             let randZ = Math.random() - 0.5;
-            this.currentTurtle.rotateTurtleX(this.rotation * randX * 45);
-            this.currentTurtle.rotateTurtleY(this.rotation * randY * 45);
-            this.currentTurtle.rotateTurtleZ(this.rotation * randZ * 45);
+            this.currentTurtle.rotateTurtleX(this.rotation * randX * 60);
+            this.currentTurtle.rotateTurtleY(this.rotation * randY * 60);
+            this.currentTurtle.rotateTurtleZ(this.rotation * randZ * 60);
+        } else {
+            let randY = Math.random() - 0.5;
+            this.currentTurtle.rotateTurtleY(this.rotation * randY * 60);
         }
 
-        if (this.currentTurtle.depth > 0) {
+        //if (this.currentTurtle.depth > 0) {
             // scale cactus by some random amount
             let scaleRand = (Math.random() + 1) / 2.0;
             this.currentTurtle.scaleTurtle(scaleRand * 0.9);
-        }
+        //}
 
         let transformMat: mat4 = this.currentTurtle.getTurtleTransMat();
         let invTransMat: mat4 = this.currentTurtle.getTurtleInvTransTransMat();
 
         let cactusPaddlePos: Float32Array = cactusPaddleMesh.positions;
         let cactusPaddleNor: Float32Array = cactusPaddleMesh.normals;
+        let cactusPaddleCol: Float32Array = cactusPaddleMesh.colors;
         for (var i = 0; i < cactusPaddlePos.length; i += 4) {
             // get positions of basic cactus and transform them
             var pos: vec4 = vec4.fromValues(cactusPaddlePos[i],
                 cactusPaddlePos[i + 1], cactusPaddlePos[i + 2], cactusPaddlePos[i + 3]);
             pos = vec4.transformMat4(pos, pos, transformMat);
 
-            // put positions into array and pass to mesh
-            let posArray: Float32Array = new Float32Array([pos[0], pos[1], pos[2], pos[3]]);
-            cactusMesh.addPositions(posArray);
-
+            // pass positions
+            cactusMesh.addPosition(pos[0]);
+            cactusMesh.addPosition(pos[1]);
+            cactusMesh.addPosition(pos[2]);
+            cactusMesh.addPosition(pos[3]);
 
             // get normals of basic cactus and transform them
             var nor: vec4 = vec4.fromValues(cactusPaddleNor[i],
                 cactusPaddleNor[i + 1], cactusPaddleNor[i + 2], cactusPaddleNor[i + 3]);
             nor = vec4.transformMat4(nor, nor, invTransMat);
 
-            // put positions into array and pass to mesh
-            let norArray: Float32Array = new Float32Array([nor[0], nor[1], nor[2], nor[3]]);
-            cactusMesh.addNormals(norArray);
+            // pass normals
+            cactusMesh.addNormal(nor[0]);
+            cactusMesh.addNormal(nor[1]);
+            cactusMesh.addNormal(nor[2]);
+            cactusMesh.addNormal(nor[3]);
+
+            // pass colors
+            var col: vec4 = vec4.fromValues(cactusPaddleCol[i],
+                cactusPaddleCol[i + 1], cactusPaddleCol[i + 2], cactusPaddleCol[i + 3]);
+            cactusMesh.addColor(col[0]);
+            cactusMesh.addColor(col[1]);
+            cactusMesh.addColor(col[2]);
+            cactusMesh.addColor(col[3]);
 
         }
 
-        // pass cactus colors
-        cactusMesh.addColors(cactusPaddleMesh.colors);
-
+        // pass indices
         let offset: number = cactusMesh.getMaxIndex() + 1;
 
         let cactusPaddleIndices: Uint32Array = cactusPaddleMesh.indices;
-        var cactusIndices: number[] = [];
         for (var i = 0; i < cactusPaddleIndices.length; i++) {
-            cactusIndices.push(cactusPaddleIndices[i] + offset);
+            cactusMesh.addIndex(cactusPaddleIndices[i] + offset);
         }
-        let indicesArray: Uint32Array = new Uint32Array(cactusIndices);
-        cactusMesh.addIndices(indicesArray);
 
         var toTranslateBy: vec4 = vec4.fromValues(0, 1, 0, 1);
         toTranslateBy = vec4.scale(toTranslateBy, toTranslateBy, this.currentTurtle.scale);
@@ -152,48 +162,57 @@ class Turtle {
 
         let flowerPos: Float32Array = flowerMesh.positions;
         let flowerNor: Float32Array = flowerMesh.normals;
+        let flowerCol: Float32Array = flowerMesh.colors;
+
         for (var i = 0; i < flowerPos.length; i += 4) {
             // get positions of basic cactus and transform them
             var pos: vec4 = vec4.fromValues(flowerPos[i],
                 flowerPos[i + 1], flowerPos[i + 2], flowerPos[i + 3]);
             pos = vec4.transformMat4(pos, pos, transformMat);
 
-            // put positions into array and pass to mesh
-            let posArray: Float32Array = new Float32Array([pos[0], pos[1], pos[2], pos[3]]);
-            cactusMesh.addPositions(posArray);
+            // pass positions
+            cactusMesh.addPosition(pos[0]);
+            cactusMesh.addPosition(pos[1]);
+            cactusMesh.addPosition(pos[2]);
+            cactusMesh.addPosition(pos[3]);
 
             // get normals of basic cactus and transform them
             var nor: vec4 = vec4.fromValues(flowerNor[i],
                 flowerNor[i + 1], flowerNor[i + 2], flowerNor[i + 3]);
             nor = vec4.transformMat4(nor, nor, invTransMat);
 
-            // put positions into array and pass to mesh
-            let norArray: Float32Array = new Float32Array([nor[0], nor[1], nor[2], nor[3]]);
-            cactusMesh.addNormals(norArray);
+            // pass normals
+            cactusMesh.addNormal(nor[0]);
+            cactusMesh.addNormal(nor[1]);
+            cactusMesh.addNormal(nor[2]);
+            cactusMesh.addNormal(nor[3]);
+
+            // get colors and pass them
+            var col: vec4 = vec4.fromValues(flowerCol[i],
+                flowerCol[i + 1], flowerCol[i + 2], flowerCol[i + 3]);
+            cactusMesh.addColor(col[0]);
+            cactusMesh.addColor(col[1]);
+            cactusMesh.addColor(col[2]);
+            cactusMesh.addColor(col[3]);
 
         }
 
+        // pass indices
         let offset: number = cactusMesh.getMaxIndex() + 1;
 
         let flowerIndices: Uint32Array = flowerMesh.indices;
-        var cactusIndices: number[] = [];
         for (var i = 0; i < flowerIndices.length; i++) {
-            cactusIndices.push(flowerIndices[i] + offset);
+            cactusMesh.addIndex(flowerIndices[i] + offset);
         }
-        let indicesArray: Uint32Array = new Uint32Array(cactusIndices);
-        cactusMesh.addIndices(indicesArray);
-
-        // pass flower colors
-        cactusMesh.addColors(flowerMesh.colors);
 
         this.currentTurtle.depth++;
 
-        console.log("draw flower");
+        //console.log("draw flower");
 
     }
 
     rotateLeft(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void  {
-        console.log("rotateLeft");
+        //console.log("rotateLeft");
         this.turtleStates.push(this.currentTurtle);
 
         let pos: vec3 = vec3.fromValues(this.currentTurtle.position[0], this.currentTurtle.position[1],
@@ -211,7 +230,7 @@ class Turtle {
     }
 
     rotateRight(cactusPaddleMesh: CactusPaddle, cactusMesh: LSystemMesh) : void {
-        console.log("rotateRight");
+        //console.log("rotateRight");
 
         this.currentTurtle = this.turtleStates.pop();
         this.currentTurtle.rotateTurtleZ(-45);

@@ -74,7 +74,7 @@ function main() {
   const gui = new DAT.GUI();
   gui.add(controls, 'Update');
   gui.add(controls, 'Iterations', 0, 5);
-  gui.add(controls, 'Rotation', 0, 1);
+  gui.add(controls, 'Rotation', 0, 3);
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement>document.getElementById('canvas');

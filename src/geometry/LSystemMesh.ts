@@ -11,63 +11,58 @@ class LSystem extends Drawable {
   indicesTemp: number[];
   positionsTemp: number[];
   normalsTemp: number[];
+  colorsTemp: number[];
 
   constructor() {
     super(); // Call the constructor of the super class. This is required.
-    this.indices = new Uint32Array(0);
+    //this.indices = new Uint32Array(0);
     this.positions = new Float32Array(0);
     this.normals = new Float32Array(0);
     this.colors = new Float32Array(0);
 
-    //this.indicesTemp = [];
-    //this.positionsTemp = [];
-    //this.normalsTemp = [];
+    this.indicesTemp = [];
+    this.positionsTemp = [];
+    this.normalsTemp = [];
+    this.colorsTemp = [];
   }
 
+  /*
   addIndices(newIndices: Uint32Array) : void {
     var newIndicesArray = new Uint32Array(this.indices.length + newIndices.length);
     newIndicesArray.set(this.indices);
     newIndicesArray.set(newIndices, this.indices.length);
 
     this.indices = newIndicesArray;
+  }*/
+
+  addIndex(newIndex: number) : void {
+    this.indicesTemp.push(newIndex);
   }
 
-  addPositions(newPositions: Float32Array) : void {
-    var newPositionsArray = new Float32Array(this.positions.length + newPositions.length);
-    newPositionsArray.set(this.positions);
-    newPositionsArray.set(newPositions, this.positions.length);
-
-    this.positions = newPositionsArray;
+  addPosition(newPos: number) : void {
+    this.positionsTemp.push(newPos);
   }
 
-  addNormals(newNormals: Float32Array) : void {
-    var newNormalsArray = new Float32Array(this.normals.length + newNormals.length);
-    newNormalsArray.set(this.normals);
-    newNormalsArray.set(newNormals, this.normals.length);
-
-    this.normals = newNormalsArray;
+  addNormal(newNor: number) : void {
+    this.normalsTemp.push(newNor);
   }
 
-  addColors(newColors: Float32Array) : void {
-    var newColorsArray = new Float32Array(this.colors.length + newColors.length);
-    newColorsArray.set(this.colors);
-    newColorsArray.set(newColors, this.colors.length);
-
-    this.colors = newColorsArray;
+  addColor(newCol: number) : void {
+    this.colorsTemp.push(newCol);
   }
 
   clear() {
-    this.indices = new Uint32Array(0);
-    this.positions = new Float32Array(0);
-    this.normals = new Float32Array(0);
-    this.colors = new Float32Array(0);
+    this.indicesTemp = [];
+    this.positionsTemp = [];
+    this.normalsTemp = [];
+    this.colorsTemp = [];
   }
 
   getMaxIndex() : number {
-    if (this.indices.length == 0) {
+    if (this.indicesTemp.length == 0) {
       return -1;
     } else {
-      var max = this.indices.reduce(function(a, b) {
+      var max = this.indicesTemp.reduce(function(a, b) {
         return Math.max(a, b);
       });
       return max;
@@ -77,6 +72,12 @@ class LSystem extends Drawable {
   // only call once all geometry has been added to cactus (l-system has been fully expanded and such)
   create() {
     
+
+    this.indices = new Uint32Array(this.indicesTemp);
+    this.positions = new Float32Array(this.positionsTemp);
+    this.normals = new Float32Array(this.normalsTemp);
+    this.colors = new Float32Array(this.colorsTemp);
+
 
     this.generateIdx();
     this.generatePos();

@@ -27,6 +27,8 @@ class GrammarExpansion {
     // uses randomly generated number to determine how to expand a character
     getExpansion(startChar: string): string {
         if (this.expansionRulesMap.has(startChar)) {
+            console.log("expand char = " + startChar);
+
             var probToStringMap: Map<number, string> = this.expansionRulesMap.get(startChar);
 
             var rand: number = Math.random();
@@ -35,12 +37,15 @@ class GrammarExpansion {
 
             var accumulatedProbability: number = 0.0;
             for (const prob of probToStringMap.keys()) {
+                
                 if (rand > accumulatedProbability && rand <= accumulatedProbability + prob) {
+                    console.log("prob = " + prob);
                     successorString = probToStringMap.get(prob);
                 }
                 accumulatedProbability += prob;
             }
 
+            console.log("char was expanded to = " + successorString);
             return successorString;
         } else {
             return '';

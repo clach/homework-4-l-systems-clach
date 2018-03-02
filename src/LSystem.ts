@@ -20,8 +20,12 @@ class LSystem {
         // add string expansion rules
         this.expansionRules.addExpansionRule('[', 1, '[');
         this.expansionRules.addExpansionRule(']', 1, ']');
-        this.expansionRules.addExpansionRule('1', 1, '11');
-        this.expansionRules.addExpansionRule('0', 1, '1[0]0');
+        this.expansionRules.addExpansionRule('1', 0.3, '11');
+        this.expansionRules.addExpansionRule('1', 0.5, '1[0]0');
+        this.expansionRules.addExpansionRule('1', 0.2, '1');
+        this.expansionRules.addExpansionRule('0', 0.5, '1[0]0');
+        this.expansionRules.addExpansionRule('0', 0.2, '10');
+        this.expansionRules.addExpansionRule('0', 0.3, '1[0][0]0');
     }
 
     // add drawing rules
@@ -41,11 +45,11 @@ class LSystem {
     // determines what successor string each character maps to 
     // returns string made of successor strings
     expandString() : void {
-        //console.log("about to expand " + this.currStringArr);
+        console.log("about to expand " + this.currStringArr.join(''));
         var newStringArr: string[] = [];
         for (var i = 0; i < this.currStringArr.length; i++) {
             var stringToExpand = this.currStringArr[i];
-            //console.log("stringToExpand: " + stringToExpand);
+            console.log("stringToExpand: " + stringToExpand);
             for (var j = 0; j < stringToExpand.length; j++) {
                 var char = stringToExpand.charAt(j);
 
@@ -55,7 +59,7 @@ class LSystem {
             }
         }
 
-        //console.log("should expand to " + newStringArr);
+        console.log("expanded to " + newStringArr.join(""));
         this.currStringArr = newStringArr;
     }
 
